@@ -10,13 +10,24 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.sql.*;
+import java.sql.SQLException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
-import java.util.Random;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserDaoImplTest {
@@ -30,13 +41,13 @@ public class UserDaoImplTest {
     private PreparedStatement preparedStatement;
     @Mock
     private ResultSet resultSet;
-
     private User user;
-
     private static final String ADDED_QUERY = "INSERT INTO Account(email, password, isAdmin) VALUES (?,?,?)";
     private static final String UPDATE_QUERY = "UPDATE Account as acc SET acc.email = ?, acc.password = ?, acc.isAdmin = ? WHERE acc.id = ?";
     private static final String SELECT_USER_BY_ID_QUERY = "SELECT acc.id, acc.email, acc.password, acc.isAdmin FROM Account as acc WHERE acc.id = ?";
     private static final String SELECT_USER_QUERY = "SELECT acc.id, acc.email, acc.password, acc.isAdmin FROM Account as acc";
+    private static final String DELETE_USER_QUERY = "DELETE FROM Account as acc WHERE acc.id = ?";
+    private static final String SELECT_USER_ADMIN_QUERY = "SELECT acc.id, acc.email, acc.password, acc.isAdmin FROM Account as acc WHERE acc.id = ? AND acc.isAdmin = 1";
 
     @Before
     public void setUp() throws SQLException {
@@ -51,8 +62,7 @@ public class UserDaoImplTest {
     }
 
     @Test
-    public void nullCreateThrowsException() throws SQLException {
-        when(conn.prepareStatement(ADDED_QUERY)).thenReturn(preparedStatement);
+    public void nullCreateThrowsException() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userDao.addUser(null);
         });
@@ -89,8 +99,7 @@ public class UserDaoImplTest {
     }
 
     @Test
-    public void nullEditThrowsException() throws SQLException {
-        when(conn.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
+    public void nullEditThrowsException() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userDao.editUser(null);
         });
@@ -126,8 +135,7 @@ public class UserDaoImplTest {
     }
 
     @Test
-    public void nullFindUserByIdThrowsException() throws SQLException {
-        when(conn.prepareStatement(SELECT_USER_BY_ID_QUERY)).thenReturn(preparedStatement);
+    public void nullFindUserByIdThrowsException() {
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             userDao.findUserById(null);
         });
@@ -197,10 +205,73 @@ public class UserDaoImplTest {
     }
 
     @Test
-    public void deleteUser() {
+    public void nullDeleteUserThrowsException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userDao.deleteUser(null);
+        });
+        String expectedException = "User id is not null";
+        assertEquals(expectedException, exception.getMessage());
     }
 
     @Test
-    public void isUserAdmin() {
+    public void sqlDeleteUserThrowsException() throws SQLException {
+        when(conn.prepareStatement(DELETE_USER_QUERY)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenThrow(SQLException.class);
+        Exception exception = assertThrows(SQLException.class, () ->
+                userDao.deleteUser(user.getId())
+        );
+        String expectedException = "Internal exception has been occurred";
+        assertEquals(expectedException, exception.getMessage());
+        verify(conn).rollback();
+    }
+
+    @Test
+    public void deleteUser() throws SQLException {
+        when(conn.prepareStatement(DELETE_USER_QUERY)).thenReturn(preparedStatement);
+        when(preparedStatement.executeUpdate()).thenReturn(1);
+        int expectedResponse = 1;
+        Assert.assertEquals(expectedResponse, userDao.deleteUser(user.getId()));
+        verify(conn, times(1)).prepareStatement(DELETE_USER_QUERY);
+        verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
+        verify(conn).commit();
+        verify(preparedStatement).close();
+    }
+
+    @Test
+    public void nullIsUserAdminThrowsException() {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+            userDao.isUserAdmin(null);
+        });
+        String expectedException = "User id is not null";
+        assertEquals(expectedException, exception.getMessage());
+    }
+
+    @Test
+    public void sqlIsUserAdminThrowsException() throws SQLException {
+        when(conn.prepareStatement(SELECT_USER_ADMIN_QUERY)).thenReturn(preparedStatement);
+        when(preparedStatement.executeQuery()).thenThrow(SQLException.class);
+        Exception exception = assertThrows(SQLException.class, () ->
+                userDao.isUserAdmin(user.getId())
+        );
+        String expectedException = "Internal exception has been occurred";
+        assertEquals(expectedException, exception.getMessage());
+    }
+
+    @Test
+    public void isUserAdmin() throws SQLException {
+        when(conn.prepareStatement(SELECT_USER_ADMIN_QUERY)).thenReturn(preparedStatement);
+        preparedStatement.setInt(eq(1), anyInt());
+        when(preparedStatement.executeQuery()).thenReturn(resultSet);
+        when(resultSet.next()).thenReturn(true).thenReturn(false);;
+        when(resultSet.getInt("id")).thenReturn(user.getId());
+        when(resultSet.getString("email")).thenReturn(user.getEmail());
+        when(resultSet.getString("password")).thenReturn(user.getPassword());
+        when(resultSet.getBoolean("isAdmin")).thenReturn(user.getIsAdmin());
+
+        Boolean returnedUser = userDao.isUserAdmin(user.getId());
+        assertTrue(returnedUser);
+        verify(conn, times(1)).prepareStatement(SELECT_USER_ADMIN_QUERY);
+        verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
+        verify(preparedStatement).close();
     }
 }
