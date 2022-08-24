@@ -1,0 +1,11 @@
+CREATE SCHEMA RestfulTest;
+
+CREATE TABLE ACCOUNT(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    PASSWORD VARCHAR(100) NOT NULL,
+    isAdmin SMALLINT DEFAULT FALSE
+)
+
+    INSERT INTO ACCOUNT(email, PASSWORD, isAdmin) VALUES ('admin@example.com', 'admin', 1);
+INSERT INTO ACCOUNT(email, PASSWORD, isAdmin) VALUES ('user@example.com', 'user', 0);

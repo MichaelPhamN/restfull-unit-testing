@@ -10,12 +10,14 @@
         <module name="restfull-unit-testing" />
         <module name="scenarioTwo" />
         <module name="scenarioOne" />
+        <module name="scenarioThree" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="scenarioOne" options="-parameters" />
+      <module name="scenarioThree" options="-parameters" />
       <module name="scenarioTwo" options="-parameters" />
     </option>
   </component>
