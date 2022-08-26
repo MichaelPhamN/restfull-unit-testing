@@ -16,7 +16,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorMessage> DataNotFoundException(DataNotFoundException ex, WebRequest request) {
         ErrorMessage message = new ErrorMessage(
                 HttpStatus.NOT_FOUND.value(),
-                new Date(),
                 ex.getMessage(),
                 request.getDescription(false));
 
@@ -28,7 +27,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorMessage> InvalidDataRequestException(InvalidDataRequestException ex, WebRequest request) {
         ErrorMessage message = new ErrorMessage(
                 HttpStatus.BAD_REQUEST.value(),
-                new Date(),
                 ex.getMessage(),
                 request.getDescription(false));
 
@@ -40,7 +38,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorMessage> DataAccessException(DataAccessException ex, WebRequest request) {
         ErrorMessage message = new ErrorMessage(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                new Date(),
                 ex.getMessage(),
                 request.getDescription(false));
 

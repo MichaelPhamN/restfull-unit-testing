@@ -87,6 +87,7 @@ public class UserDaoImpl implements UserDao {
                 user.setPassword(rs.getString("password"));
                 user.setIsAdmin(rs.getBoolean("isAdmin"));
             }
+            rs.close();
             preparedStatement.close();
         } catch (SQLException e) {
             throw new SQLException("Internal exception has been occurred");
@@ -110,6 +111,7 @@ public class UserDaoImpl implements UserDao {
                 user.setIsAdmin(rs.getBoolean("isAdmin"));
                 users.add(user);
             }
+            rs.close();
             preparedStatement.close();
         } catch (SQLException e) {
             throw new SQLException("Internal exception has been occurred");
@@ -161,6 +163,7 @@ public class UserDaoImpl implements UserDao {
                 user.setPassword(rs.getString("password"));
                 user.setIsAdmin(rs.getBoolean("isAdmin"));
             }
+            rs.close();
             preparedStatement.close();
         } catch (SQLException e) {
             throw new SQLException("Internal exception has been occurred");
