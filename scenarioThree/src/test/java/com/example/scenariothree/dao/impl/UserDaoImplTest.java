@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -41,7 +42,7 @@ public class UserDaoImplTest {
     private PreparedStatement preparedStatement;
     @Mock
     private ResultSet resultSet;
-    private User user;
+    private List<User> users;
     private static final String ADDED_QUERY = "INSERT INTO Account(email, password, isAdmin) VALUES (?,?,?)";
     private static final String UPDATE_QUERY = "UPDATE Account as acc SET acc.email = ?, acc.password = ?, acc.isAdmin = ? WHERE acc.id = ?";
     private static final String SELECT_USER_BY_ID_QUERY = "SELECT acc.id, acc.email, acc.password, acc.isAdmin FROM Account as acc WHERE acc.id = ?";
@@ -52,11 +53,15 @@ public class UserDaoImplTest {
     @Before
     public void setUp() throws SQLException {
         Faker faker = new Faker();
-        user = new User();
-        user.setId(faker.random().nextInt(100));
-        user.setEmail(faker.internet().emailAddress());
-        user.setPassword(faker.internet().password());
-        user.setIsAdmin(faker.random().nextBoolean());
+        users = new ArrayList<>();
+        for(int i = 0; i < 10; i++) {
+            User user = new User();
+            user.setId(faker.random().nextInt(100));
+            user.setEmail(faker.internet().emailAddress());
+            user.setPassword(faker.internet().password());
+            user.setIsAdmin(faker.random().nextBoolean());
+            users.add(user);
+        }
         Assert.assertNotNull(config);
         when(config.getConnection()).thenReturn(conn);
     }
@@ -76,7 +81,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(ADDED_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(SQLException.class);
         Exception exception = assertThrows(SQLException.class, () ->
-            userDao.addUser(user)
+            userDao.addUser(users.get(9))
         );
         String expectedException = "Internal exception has been occurred";
         assertEquals(expectedException, exception.getMessage());
@@ -88,7 +93,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(ADDED_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         int expectedResponse = 1;
-        Assert.assertEquals(expectedResponse, userDao.addUser(user));
+        Assert.assertEquals(expectedResponse, userDao.addUser(users.get(9)));
         verify(conn, times(1)).setAutoCommit(false);
         verify(conn, times(1)).prepareStatement(ADDED_QUERY);
         verify(preparedStatement, times(1)).setString(eq(1), anyString());
@@ -112,7 +117,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(SQLException.class);
         Exception exception = assertThrows(SQLException.class, () ->
-                userDao.editUser(user)
+                userDao.editUser(users.get(9))
         );
         String expectedException = "Internal exception has been occurred";
         assertEquals(expectedException, exception.getMessage());
@@ -124,7 +129,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(UPDATE_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         int expectedResponse = 1;
-        Assert.assertEquals(expectedResponse, userDao.editUser(user));
+        Assert.assertEquals(expectedResponse, userDao.editUser(users.get(9)));
         verify(conn, times(1)).prepareStatement(UPDATE_QUERY);
         verify(preparedStatement, times(1)).setString(eq(1), anyString());
         verify(preparedStatement, times(1)).setString(eq(2), anyString());
@@ -148,7 +153,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(SELECT_USER_BY_ID_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenThrow(SQLException.class);
         Exception exception = assertThrows(SQLException.class, () ->
-                userDao.findUserById(user.getId())
+                userDao.findUserById(users.get(9).getId())
         );
         String expectedException = "Internal exception has been occurred";
         assertEquals(expectedException, exception.getMessage());
@@ -160,17 +165,17 @@ public class UserDaoImplTest {
         preparedStatement.setInt(eq(1), anyInt());
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true).thenReturn(false);;
-        when(resultSet.getInt("id")).thenReturn(user.getId());
-        when(resultSet.getString("email")).thenReturn(user.getEmail());
-        when(resultSet.getString("password")).thenReturn(user.getPassword());
-        when(resultSet.getBoolean("isAdmin")).thenReturn(user.getIsAdmin());
+        when(resultSet.getInt("id")).thenReturn(users.get(9).getId());
+        when(resultSet.getString("email")).thenReturn(users.get(9).getEmail());
+        when(resultSet.getString("password")).thenReturn(users.get(9).getPassword());
+        when(resultSet.getBoolean("isAdmin")).thenReturn(users.get(9).getIsAdmin());
 
-        User returnedUser = userDao.findUserById(user.getId());
+        User returnedUser = userDao.findUserById(users.get(9).getId());
         assertNotNull(returnedUser);
-        assertEquals(user.getId(), returnedUser.getId());
-        assertEquals(user.getEmail(), returnedUser.getEmail());
-        assertEquals(user.getPassword(), returnedUser.getPassword());
-        assertEquals(user.getIsAdmin(), returnedUser.getIsAdmin());
+        assertEquals(users.get(9).getId(), returnedUser.getId());
+        assertEquals(users.get(9).getEmail(), returnedUser.getEmail());
+        assertEquals(users.get(9).getPassword(), returnedUser.getPassword());
+        assertEquals(users.get(9).getIsAdmin(), returnedUser.getIsAdmin());
         verify(conn, times(1)).prepareStatement(SELECT_USER_BY_ID_QUERY);
         verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
         verify(preparedStatement).close();
@@ -192,10 +197,10 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(SELECT_USER_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true).thenReturn(false);;
-        when(resultSet.getInt("id")).thenReturn(user.getId());
-        when(resultSet.getString("email")).thenReturn(user.getEmail());
-        when(resultSet.getString("password")).thenReturn(user.getPassword());
-        when(resultSet.getBoolean("isAdmin")).thenReturn(user.getIsAdmin());
+        when(resultSet.getInt("id")).thenReturn(users.get(9).getId());
+        when(resultSet.getString("email")).thenReturn(users.get(9).getEmail());
+        when(resultSet.getString("password")).thenReturn(users.get(9).getPassword());
+        when(resultSet.getBoolean("isAdmin")).thenReturn(users.get(9).getIsAdmin());
 
         List<User> returnedUser = userDao.findUsers();
         assertNotNull(returnedUser);
@@ -218,7 +223,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(DELETE_USER_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenThrow(SQLException.class);
         Exception exception = assertThrows(SQLException.class, () ->
-                userDao.deleteUser(user.getId())
+                userDao.deleteUser(users.get(9).getId())
         );
         String expectedException = "Internal exception has been occurred";
         assertEquals(expectedException, exception.getMessage());
@@ -230,7 +235,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(DELETE_USER_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeUpdate()).thenReturn(1);
         int expectedResponse = 1;
-        Assert.assertEquals(expectedResponse, userDao.deleteUser(user.getId()));
+        Assert.assertEquals(expectedResponse, userDao.deleteUser(users.get(9).getId()));
         verify(conn, times(1)).prepareStatement(DELETE_USER_QUERY);
         verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
         verify(conn).commit();
@@ -251,7 +256,7 @@ public class UserDaoImplTest {
         when(conn.prepareStatement(SELECT_USER_ADMIN_QUERY)).thenReturn(preparedStatement);
         when(preparedStatement.executeQuery()).thenThrow(SQLException.class);
         Exception exception = assertThrows(SQLException.class, () ->
-                userDao.isUserAdmin(user.getId())
+                userDao.isUserAdmin(users.get(9).getId())
         );
         String expectedException = "Internal exception has been occurred";
         assertEquals(expectedException, exception.getMessage());
@@ -263,12 +268,12 @@ public class UserDaoImplTest {
         preparedStatement.setInt(eq(1), anyInt());
         when(preparedStatement.executeQuery()).thenReturn(resultSet);
         when(resultSet.next()).thenReturn(true).thenReturn(false);;
-        when(resultSet.getInt("id")).thenReturn(user.getId());
-        when(resultSet.getString("email")).thenReturn(user.getEmail());
-        when(resultSet.getString("password")).thenReturn(user.getPassword());
-        when(resultSet.getBoolean("isAdmin")).thenReturn(user.getIsAdmin());
+        when(resultSet.getInt("id")).thenReturn(users.get(9).getId());
+        when(resultSet.getString("email")).thenReturn(users.get(9).getEmail());
+        when(resultSet.getString("password")).thenReturn(users.get(9).getPassword());
+        when(resultSet.getBoolean("isAdmin")).thenReturn(users.get(9).getIsAdmin());
 
-        Boolean returnedUser = userDao.isUserAdmin(user.getId());
+        Boolean returnedUser = userDao.isUserAdmin(users.get(9).getId());
         assertTrue(returnedUser);
         verify(conn, times(1)).prepareStatement(SELECT_USER_ADMIN_QUERY);
         verify(preparedStatement, times(1)).setInt(eq(1), anyInt());

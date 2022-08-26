@@ -1,5 +1,6 @@
 package com.example.scenariothree.controller;
 
+import com.example.scenariothree.exception.DataNotFoundException;
 import com.example.scenariothree.model.User;
 import com.example.scenariothree.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,39 +22,72 @@ import java.util.List;
 @RequestMapping("/user")
 public class UserController {
     @Autowired
-    private UserServiceImpl UserService;
+    private UserServiceImpl userService;
     @GetMapping("")
     public ResponseEntity<List<User>> findUsers() throws SQLException {
-        List<User> Users = UserService.findUsers();
-        return new ResponseEntity<>(Users, HttpStatus.OK);
+        List<User> users = userService.findUsers();
+        if(users.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> findUserById(@PathVariable int id) throws SQLException {
-        User User = UserService.findUserById(id);
-        return new ResponseEntity<>(User, HttpStatus.OK);
+        User user = userService.findUserById(id);
+        if(user == null) {
+            throw new DataNotFoundException("Data not found");
+        }
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @GetMapping("/isAdmin/{id}")
     public ResponseEntity<Boolean> isUserAdmin(@PathVariable int id) throws SQLException {
-        boolean isAdmin = UserService.isUserAdmin(id);
+        User user = userService.findUserById(id);
+        if(user == null) {
+            throw new DataNotFoundException("Data not found");
+        }
+        boolean isAdmin = userService.isUserAdmin(id);
         return new ResponseEntity<>(isAdmin, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public int deleteUser(@PathVariable int id) throws SQLException {
-        return UserService.deleteUser(id);
+    public ResponseEntity<String> deleteUser(@PathVariable int id) throws SQLException {
+        User user = userService.findUserById(id);
+        if(user == null) {
+            throw new DataNotFoundException("Data not found");
+        }
+        int executed = userService.deleteUser(id);
+        return executed != 0 ? new ResponseEntity<>("Delete account successful", HttpStatus.NO_CONTENT)
+                : new ResponseEntity<>("Delete account failure", HttpStatus.BAD_REQUEST);
     }
 
     @PostMapping("")
-    public int addUser(@RequestBody User user) throws SQLException {
-        int executedRow = UserService.addUser(user);
-        return executedRow;
+    public ResponseEntity<String> addUser(@RequestBody User user) throws SQLException {
+        if(user == null) {
+            throw new IllegalArgumentException("User data is not null");
+        }
+        int executed = userService.addUser(user);
+        return executed != 0 ? new ResponseEntity<>("Add account successful", HttpStatus.CREATED)
+                : new ResponseEntity<>("Add account failure", HttpStatus.BAD_REQUEST);
     }
 
     @PutMapping("")
-    public int editUser(@RequestBody User user) throws SQLException {
-        int executedRow = UserService.editUser(user);
-        return executedRow;
+    public ResponseEntity<String> editUser(@RequestBody User user) throws SQLException {
+        if(user == null) {
+            throw new IllegalArgumentException("User data is not null");
+        }
+
+        User getUser = userService.findUserById(user.getId());
+        if(getUser == null) {
+            throw new DataNotFoundException("Data not found");
+        }
+        getUser.setId(user.getId());
+        getUser.setEmail(user.getEmail());
+        getUser.setPassword(user.getPassword());
+        getUser.setIsAdmin(user.getIsAdmin());
+        int executed = userService.editUser(user);
+        return executed != 0 ? new ResponseEntity<>("Edit account successful", HttpStatus.OK)
+                : new ResponseEntity<>("Edit account failure", HttpStatus.BAD_REQUEST);
     }
 }

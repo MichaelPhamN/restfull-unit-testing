@@ -7,5 +7,5 @@ CREATE TABLE ACCOUNT(
     isAdmin SMALLINT DEFAULT FALSE
 )
 
-    INSERT INTO ACCOUNT(email, PASSWORD, isAdmin) VALUES ('admin@example.com', 'admin', 1);
-INSERT INTO ACCOUNT(email, PASSWORD, isAdmin) VALUES ('user@example.com', 'user', 0);
+INSERT INTO ACCOUNT(id,email, PASSWORD, isAdmin) VALUES (1,'admin@example.com', 'admin', 1);
+INSERT INTO ACCOUNT(id,email, PASSWORD, isAdmin) VALUES (2,'user@example.com', 'user', 0);

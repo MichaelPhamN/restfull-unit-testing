@@ -96,7 +96,7 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> findUsers() throws SQLException {
-        List<User> Users = new ArrayList<>();
+        List<User> users = new ArrayList<>();
         try {
             Connection conn = config.getConnection();
             String sql = "SELECT acc.id, acc.email, acc.password, acc.isAdmin FROM Account as acc";
@@ -108,13 +108,13 @@ public class UserDaoImpl implements UserDao {
                 user.setEmail(rs.getString("email"));
                 user.setPassword(rs.getString("password"));
                 user.setIsAdmin(rs.getBoolean("isAdmin"));
-                Users.add(user);
+                users.add(user);
             }
             preparedStatement.close();
         } catch (SQLException e) {
             throw new SQLException("Internal exception has been occurred");
         }
-        return Users;
+        return users;
     }
 
     @Override
