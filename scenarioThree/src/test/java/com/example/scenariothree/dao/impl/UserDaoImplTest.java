@@ -178,6 +178,7 @@ public class UserDaoImplTest {
         assertEquals(users.get(9).getIsAdmin(), returnedUser.getIsAdmin());
         verify(conn, times(1)).prepareStatement(SELECT_USER_BY_ID_QUERY);
         verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
+        verify(resultSet).close();
         verify(preparedStatement).close();
     }
 
@@ -206,6 +207,7 @@ public class UserDaoImplTest {
         assertNotNull(returnedUser);
         assertEquals(1, returnedUser.size());
         verify(conn, times(1)).prepareStatement(SELECT_USER_QUERY);
+        verify(resultSet).close();
         verify(preparedStatement).close();
     }
 
@@ -277,6 +279,7 @@ public class UserDaoImplTest {
         assertTrue(returnedUser);
         verify(conn, times(1)).prepareStatement(SELECT_USER_ADMIN_QUERY);
         verify(preparedStatement, times(1)).setInt(eq(1), anyInt());
+        verify(resultSet).close();
         verify(preparedStatement).close();
     }
 }

@@ -1,11 +1,9 @@
 package com.example.scenariothree.component;
 
 import com.example.scenariothree.ScenarioThreeApplication;
-import com.example.scenariothree.service.impl.UserServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
@@ -32,10 +30,6 @@ public class UserControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private WebApplicationContext webApplicationContext;
-
-    @Mock
-    private UserServiceImpl userService;
-
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
